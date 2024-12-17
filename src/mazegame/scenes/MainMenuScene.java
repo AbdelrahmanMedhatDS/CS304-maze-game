@@ -14,11 +14,13 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 
+import mazegame.logic.musicPlayer;
+
+//tefa
 public class MainMenuScene implements GLEventListener, KeyListener {
     private JFrame frame;
     private GLUT glut;
-
-    // صورة الأزرار
+    private musicPlayer musicPlayer = Menu.getMusicPlayer();
     private final String[] textureNames = {"back2.jpg"};
     private final int textureLen = textureNames.length;
     private int[] textureID = new int[textureLen];
@@ -64,7 +66,15 @@ public class MainMenuScene implements GLEventListener, KeyListener {
                 gl.glBindTexture(GL.GL_TEXTURE_2D, textureID[i]);
                 textures[i] = readTexture("./utilities/images/" + textureNames[i], true);
 
-                new GLU().gluBuild2DMipmaps(GL.GL_TEXTURE_2D, GL.GL_RGBA, textures[i].getWidth(), textures[i].getHeight(), GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, textures[i].getPixels());
+                new GLU().gluBuild2DMipmaps(
+                        GL.GL_TEXTURE_2D,
+                        GL.GL_RGBA,
+                        textures[i].getWidth(),
+                        textures[i].getHeight(),
+                        GL.GL_RGBA,
+                        GL.GL_UNSIGNED_BYTE,
+                        textures[i].getPixels()
+                );
 
                 // تحسين جودة النسيج باستخدام فلتر LINEAR
                 gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
@@ -87,9 +97,7 @@ public class MainMenuScene implements GLEventListener, KeyListener {
     public void drawBackground(GL gl, GLAutoDrawable drawable) {
         gl.glEnable(GL.GL_BLEND);
         gl.glBindTexture(GL.GL_TEXTURE_2D, textureID[0]);
-
         gl.glPushMatrix();
-
         gl.glBegin(GL.GL_QUADS);
         gl.glTexCoord2f(0.0f, 0.0f);
         gl.glVertex3f(-1.0f, -1.0f, -1.0f);
@@ -112,20 +120,16 @@ public class MainMenuScene implements GLEventListener, KeyListener {
         float normalizedY = 1.0f - (2.0f * mouseY) / canvasHeight;
 
         if (normalizedX >= -0.36f && normalizedX <= 0.38f && normalizedY >= 0.13 && normalizedY <= 0.33) {
+            musicPlayer.playSoundEffect("src/utilities/sounds/toy-button.wav");
             single();
         } else if (normalizedX >= -0.36f && normalizedX <= 0.38f && normalizedY >= -0.45f && normalizedY <= -0.22f) {
+            musicPlayer.playSoundEffect("src/utilities/sounds/toy-button.wav");
             Multi();
         } else if (normalizedX >= -0.95f && normalizedX <= -0.60f && normalizedY >= -0.94f && normalizedY <= -0.82f) {
+            musicPlayer.playSoundEffect("src/utilities/sounds/toy-button.wav");
             exitGame();
+            musicPlayer.stopBackgroundMusic();
         }
-    }
-
-
-    public void Multi() {
-        System.out.println("Multi Game");
-        frame.dispose();
-        Levels multiGameScene = new Levels();
-        multiGameScene.start();
     }
 
     public void single() {
@@ -135,8 +139,14 @@ public class MainMenuScene implements GLEventListener, KeyListener {
         singleGameScene.start();
     }
 
+    public void Multi() {
+        System.out.println("Multi Game");
+        frame.dispose();
+        Levels multiGameScene = new Levels();
+        multiGameScene.start();
+    }
+
     public void exitGame() {
-        System.out.println("Exit Game");
         frame.dispose();
         Menu mainMenuScene = new Menu();
         mainMenuScene.start();
@@ -149,6 +159,8 @@ public class MainMenuScene implements GLEventListener, KeyListener {
             frame.dispose();
             Menu mainMenu = new Menu();
             mainMenu.start();
+            musicPlayer.stopBackgroundMusic();
+
         }
     }
 

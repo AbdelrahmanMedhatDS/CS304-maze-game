@@ -14,10 +14,19 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 
+import mazegame.logic.musicPlayer;
+
+//tefa
 public class Menu implements GLEventListener, KeyListener {
     private JFrame frame;
     private GLUT glut;
+    private static musicPlayer musicPlayer = new musicPlayer();
 
+    public static musicPlayer getMusicPlayer() {
+        return musicPlayer;
+    }
+
+    // صورة الأزرار
     private final String[] textureNames = {"back1.jpg"};
     private final int textureLen = textureNames.length;
     private int[] textureID = new int[textureLen];
@@ -26,7 +35,7 @@ public class Menu implements GLEventListener, KeyListener {
 
     public void start() {
         System.out.println("main menu ....");
-
+        musicPlayer.playBackgroundMusic("src/utilities/sounds/home.wav");
         frame = new JFrame("Maze Game - START");
 
         GLCapabilities capabilities = new GLCapabilities();
@@ -40,6 +49,7 @@ public class Menu implements GLEventListener, KeyListener {
             @Override
             public void mousePressed(MouseEvent e) {
                 handleMouseClick(e.getX(), e.getY(), canvas.getWidth(), canvas.getHeight());
+
             }
         });
 
@@ -55,7 +65,6 @@ public class Menu implements GLEventListener, KeyListener {
 
     public void init(GLAutoDrawable drawable) {
         GL gl = drawable.getGL();
-
         gl.glEnable(GL.GL_TEXTURE_2D);
         gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
         gl.glGenTextures(textureLen, textureID, 0);
@@ -73,6 +82,7 @@ public class Menu implements GLEventListener, KeyListener {
                         GL.GL_UNSIGNED_BYTE,
                         textures[i].getPixels()
                 );
+
                 gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
                 gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
             } catch (IOException e) {
@@ -118,9 +128,11 @@ public class Menu implements GLEventListener, KeyListener {
         float normalizedY = 1.0f - (2.0f * mouseY) / canvasHeight;
 
         if (normalizedX >= -0.36f && normalizedX <= 0.38f && normalizedY >= -0.13f && normalizedY <= 0.1f) {
+            musicPlayer.playSoundEffect("src/utilities/sounds/toy-button.wav");
             starGame();
         } else if (normalizedX >= -0.36f && normalizedX <= 0.38f && normalizedY >= -0.45f && normalizedY <= -0.23f) {
-            showHowToPlay();  // زر "How to Play"
+            musicPlayer.playSoundEffect("src/utilities/sounds/toy-button.wav");
+            showHowToPlay();
         } else if (normalizedX >= -0.36f && normalizedX <= 0.38f && normalizedY >= -0.805f && normalizedY <= -0.57f) {
             exitGame();
         }

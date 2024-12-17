@@ -14,12 +14,15 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 
+import mazegame.logic.musicPlayer;
+
+//tefa
 public class SingleLevels implements GLEventListener, KeyListener {
     private JFrame frame;
     private GLUT glut;
     public static int myStart = 0;
+    private musicPlayer musicPlayer = Menu.getMusicPlayer();
 
-    // صورة الأزرار
     private final String[] textureNames = {"levels.jpg"};
     private final int textureLen = textureNames.length;
     private int[] textureID = new int[textureLen];
@@ -66,7 +69,15 @@ public class SingleLevels implements GLEventListener, KeyListener {
                 gl.glBindTexture(GL.GL_TEXTURE_2D, textureID[i]);
                 textures[i] = readTexture("./utilities/images/" + textureNames[i], true);
 
-                new GLU().gluBuild2DMipmaps(GL.GL_TEXTURE_2D, GL.GL_RGBA, textures[i].getWidth(), textures[i].getHeight(), GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, textures[i].getPixels());
+                new GLU().gluBuild2DMipmaps(
+                        GL.GL_TEXTURE_2D,
+                        GL.GL_RGBA,
+                        textures[i].getWidth(),
+                        textures[i].getHeight(),
+                        GL.GL_RGBA,
+                        GL.GL_UNSIGNED_BYTE,
+                        textures[i].getPixels()
+                );
 
                 gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
                 gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
@@ -114,13 +125,21 @@ public class SingleLevels implements GLEventListener, KeyListener {
         float normalizedY = 1.0f - (2.0f * mouseY) / canvasHeight;
 
         if (normalizedX >= -0.36f && normalizedX <= 0.38f && normalizedY >= 0.50f && normalizedY <= 0.73f) {
+            musicPlayer.playSoundEffect("src/utilities/sounds/toy-button.wav");
             easy();
+            musicPlayer.stopBackgroundMusic();
         } else if (normalizedX >= -0.36f && normalizedX <= 0.38f && normalizedY >= -0.05 && normalizedY <= 0.18) {
+            musicPlayer.playSoundEffect("src/utilities/sounds/toy-button.wav");
             normal();
+            musicPlayer.stopBackgroundMusic();
         } else if (normalizedX >= -0.36f && normalizedX <= 0.38f && normalizedY >= -0.65f && normalizedY <= -0.42f) {
+            musicPlayer.playSoundEffect("src/utilities/sounds/toy-button.wav");
             hard();
+            musicPlayer.stopBackgroundMusic();
         } else if (normalizedX >= -0.8f && normalizedX <= -0.05f && normalizedY >= -0.94f && normalizedY <= -0.82f) {
+            musicPlayer.playSoundEffect("src/utilities/sounds/toy-button.wav");
             exitGame();
+
         }
 
     }
