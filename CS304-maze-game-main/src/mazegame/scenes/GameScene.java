@@ -14,7 +14,7 @@ package mazegame.scenes;
 
 import com.sun.opengl.util.FPSAnimator;
 import com.sun.opengl.util.GLUT;
-import mazegame.logic.MazeGenerator;
+import mazegame.logic.SinglePlayerMazeGenerator;
 import mazegame.logic.PathFinder;
 import mazegame.logic.Timer;
 
@@ -32,10 +32,9 @@ public class GameScene implements GLEventListener, KeyListener {
 
     private GLU glu;
     private int[][] maze;
-    private MazeGenerator mazeGenerator;
+    private SinglePlayerMazeGenerator mazeGenerator;
 
     private int player1X, player1Y;
-    private int player2X, player2Y;
 
     // column must be = rows + 20 && both are odd.
     private int rows = 31; // easy -->11 // medium --> 31 // hard --> 51 // solve if you can -->71
@@ -44,16 +43,28 @@ public class GameScene implements GLEventListener, KeyListener {
     // Time limit in seconds for each player
     private int gameTime = 90;
     private Timer player1Timer;
-    private Timer player2Timer;
+
 
 
     private boolean gameOver= false;
-    private boolean takeHint= false;
-    private boolean isP1 = false;
-    private boolean isP2 = false;
+    int level=0;
+    int score=0;
+    public int getRows() {
+        return rows;
+    }
 
-    private int whoTakeTheHint;
-    private int penalty = 20;
+    public void setRows(int rows) {
+        this.rows = rows;
+    }
+
+    public int getCols() {
+        return cols;
+    }
+
+    public void setCols(int cols) {
+        this.cols = cols;
+    }
+
     private boolean gamePaused = false;
 
 
@@ -64,30 +75,41 @@ public class GameScene implements GLEventListener, KeyListener {
             this.rows = 11;
             this.cols = 31;
             gameTime = 120;
-            penalty = 10;
+            this.level=1;
+
 
         }
         if(levelSelection == 2){
-            this.rows = 31;
-            this.cols = 51;
+            this.rows = 21;
+            this.cols = 41;
             gameTime = 100;
-            penalty = 20;
+            this.level=2;
 
         }
         if(levelSelection == 3){
-            this.rows = 51;
-            this.cols = 71;
+            this.rows = 31;
+            this.cols = 51;
             gameTime = 90;
-            penalty = 20;
+            this.level=3;
 
         }
         if(levelSelection == 4){
-            this.rows = 71;
-            this.cols = 91;
-            gameTime = 90;
-            penalty = 10;
+            this.rows = 41;
+            this.cols = 61;
+            gameTime = 80;
+            this.level=4;
+
 
         }
+        if(levelSelection == 5){
+            this.rows = 51;
+            this.cols = 71;
+            gameTime = 70;
+            this.level=5;
+
+        }
+
+
     }
 
     JFrame frame;
@@ -131,40 +153,19 @@ public class GameScene implements GLEventListener, KeyListener {
 
     @Override
     public void display(GLAutoDrawable drawable) {
-        System.out.println("Displaying frame");
 
         GL gl = drawable.getGL();
         gl.glClear(GL.GL_COLOR_BUFFER_BIT);
 
         drawMaze(gl);
-        drawPlayer(gl, player1X, player1Y, 1);
-        drawPlayer(gl, player2X, player2Y, 2);
+        drawPlayer(gl, player1X, player1Y);
+
 
         if (gamePaused) {
             drawPauseOverlay(gl);
         }
 
-        if (takeHint) {
-            if(isP1) {
-                drawSinglePathHighlight(
-                        gl,
-                        mazeGenerator.getPlayer1Y(),
-                        mazeGenerator.getPlayer1X(),
-                        mazeGenerator.getExitY(),
-                        mazeGenerator.getExitX(),
-                        new float[]{0.5f, 1.0f, 0.5f, 0.3f});
-            }
 
-            if (isP2) {
-                drawSinglePathHighlight(
-                        gl,
-                        mazeGenerator.getPlayer2Y(),
-                        mazeGenerator.getPlayer2X(),
-                        mazeGenerator.getExitY(),
-                        mazeGenerator.getExitX(),
-                        new float[]{0.5f, 1.0f, 0.5f, 0.3f});
-            }
-        }
 
         // Display player timers
         displayTimers(gl);
@@ -172,7 +173,6 @@ public class GameScene implements GLEventListener, KeyListener {
         // Only update and check timers if not paused
         if (!gamePaused) {
             checkGameOver();
-            Penalty();
         }
 
     }
@@ -182,18 +182,16 @@ public class GameScene implements GLEventListener, KeyListener {
 
 
     private void generateMaze() {
-        mazeGenerator = new MazeGenerator(rows, cols);
+        mazeGenerator = new SinglePlayerMazeGenerator(rows, cols);
         maze = mazeGenerator.generate();
 
         // Set player start positions
         player1X = mazeGenerator.getPlayer1X();
         player1Y = mazeGenerator.getPlayer1Y();
-        player2X = mazeGenerator.getPlayer2X();
-        player2Y = mazeGenerator.getPlayer2Y();
 
         //Create and start player timers
         player1Timer = new Timer(gameTime);
-        player2Timer = new Timer(gameTime);
+
 
     }
 
@@ -207,11 +205,8 @@ public class GameScene implements GLEventListener, KeyListener {
         }
     }
 
-    private void drawPlayer(GL gl, int x, int y, int playerNumber) {
-        float r = (playerNumber == 1) ? 0.0f : 1.0f;
-        float g = (playerNumber == 1) ? 0.0f : 1.0f;
-        float b = (playerNumber == 1) ? 1.0f : 0.0f;
-        drawSquare(gl, x, y, r, g, b);
+    private void drawPlayer(GL gl, int x, int y) {
+        drawSquare(gl, x, y, 0, 1, 0);
     }
 
     private void drawPauseOverlay(GL gl) {
@@ -260,14 +255,11 @@ public class GameScene implements GLEventListener, KeyListener {
         GLUT glut = new GLUT();
 
         // Player 1 Timer - Top Left Corner
-        gl.glColor3f(0.0f, 0.0f, 1.0f); // Blue color
+        gl.glColor3f(0.0f, 1.0f, .0f); // green color
         gl.glRasterPos2f(-2, rows + 2); // Positioned just above the maze on the left side
         glut.glutBitmapString(GLUT.BITMAP_HELVETICA_18, "P1 Time: " + player1Timer.getTimeLeft() + "s");
 
-        // Player 2 Timer - Top Right Corner
-        gl.glColor3f(1.0f, 1.0f, 0.0f); // yellow color
-        gl.glRasterPos2f(cols - 6, rows + 2); // Positioned just above the maze on the right side
-        glut.glutBitmapString(GLUT.BITMAP_HELVETICA_18, "P2 Time: " + player2Timer.getTimeLeft() + "s");
+
     }
     private void drawSinglePathHighlight(GL gl, int startY, int startX, int endY, int endX, float[] color) {
         PathFinder pathFinder = new PathFinder(maze);
@@ -294,34 +286,69 @@ public class GameScene implements GLEventListener, KeyListener {
 
     private void checkGameOver() {
         if (player1Timer.hasExpired()) {
-            System.out.println("Player 1 ran out of time!");
             gameOver = true;
 
-//            GameOverScene gameoverScene = new GameOverScene();
-//            frame.dispose();
-//            gameoverScene.start();
+            GameOverScene gameoverScene = new GameOverScene(4);
+            frame.dispose();
+            gameoverScene.start();
 
         }
+        if (player1X== mazeGenerator.getExitX()&&player1Y== mazeGenerator.getExitY()&&level==1) {
+            score=player1Timer.getTimeLeft()*100;
+            frame.dispose();
+            GameScene singleGameScene = new GameScene(2);
+            singleGameScene.start();
 
-        else if (player2Timer.hasExpired()) {
-            System.out.println("Player 2 ran out of time!");
+
+        }
+        if (player1X== mazeGenerator.getExitX()&&player1Y== mazeGenerator.getExitY()&&level==2) {
+            score+=player1Timer.getTimeLeft()*200;
+            frame.dispose();
+            GameScene singleGameScene = new GameScene(3);
+            singleGameScene.start();
+
+        }
+        if (player1X== mazeGenerator.getExitX()&&player1Y== mazeGenerator.getExitY()&&level==3) {
+            score+=player1Timer.getTimeLeft()*300;
+            if (SingleLevels.myStart==1){
             gameOver = true;
-//
-//            GameOverScene gameoverScene = new GameOverScene();
-//            frame.dispose();
-//            gameoverScene.start();
+            GameOverScene gameoverScene = new GameOverScene(3);
+            frame.dispose();
+            gameoverScene.start();
+            } else {
+                frame.dispose();
+                GameScene singleGameScene = new GameScene(4);
+                singleGameScene.start();
+            }
+
+
+        }
+        if (player1X== mazeGenerator.getExitX()&&player1Y== mazeGenerator.getExitY()&&level==4) {
+            score+=player1Timer.getTimeLeft()*400;
+            if (SingleLevels.myStart==2){
+                gameOver = true;
+
+                GameOverScene gameoverScene = new GameOverScene(3);
+                frame.dispose();
+                gameoverScene.start();
+            } else {
+                frame.dispose();
+                GameScene singleGameScene = new GameScene(5);
+                singleGameScene.start();
+            }
+
+        }
+        if (player1X== mazeGenerator.getExitX()&&player1Y== mazeGenerator.getExitY()&&level==5) {
+                score+=player1Timer.getTimeLeft()*500;
+                gameOver = true;
+                GameOverScene gameoverScene = new GameOverScene(3);
+                frame.dispose();
+                gameoverScene.start();
         }
 
-        else if (player2Timer.hasExpired() && player1Timer.hasExpired()) {
-            System.out.println("Both Players, ran out of time!");
-            System.out.println("DRAW");
-        }
-    }
 
-    private void Penalty(){
-        if (whoTakeTheHint == 1) player1Timer.reduceTime(penalty);
-        else if (whoTakeTheHint == 2) player2Timer.reduceTime(penalty);
-        whoTakeTheHint = 0;
+
+
     }
 
     private void resetPlayer1() {
@@ -329,11 +356,7 @@ public class GameScene implements GLEventListener, KeyListener {
         player1X = mazeGenerator.getPlayer1X();
         player1Y = mazeGenerator.getPlayer1Y();
     }
-    private void resetPlayer2() {
-        // Reset the init values
-        player2X = mazeGenerator.getPlayer2X();
-        player2Y = mazeGenerator.getPlayer2Y();
-    }
+
     private void drawSquare(GL gl, int x, int y, float r, float g, float b) {
         gl.glColor3f(r, g, b);
         gl.glBegin(GL.GL_QUADS);
@@ -385,12 +408,6 @@ public class GameScene implements GLEventListener, KeyListener {
                 else if (key == KeyEvent.VK_RIGHT && maze[player1Y][player1X + 1] == 0) player1X++;
 
 
-                // player_2 Moving
-                if (key == KeyEvent.VK_W && maze[player2Y + 1][player2X] == 0) player2Y++;
-                else if (key == KeyEvent.VK_S && maze[player2Y - 1][player2X] == 0) player2Y--;
-                else if (key == KeyEvent.VK_A && maze[player2Y][player2X - 1] == 0) player2X--;
-                else if (key == KeyEvent.VK_D && maze[player2Y][player2X + 1] == 0) player2X++;
-
                 // reload the game
                 if (key == KeyEvent.VK_R){
                     generateMaze();
@@ -400,24 +417,10 @@ public class GameScene implements GLEventListener, KeyListener {
                 if(key == KeyEvent.VK_0 || key == KeyEvent.VK_NUMPAD0){
                     resetPlayer1();
                 }
-                if(key == KeyEvent.VK_SPACE){
-                    resetPlayer2();
+
+
                 }
 
-                if(key == KeyEvent.VK_H){
-                    takeHint=true;
-                }
-
-                if(key == KeyEvent.VK_1 || key == KeyEvent.VK_NUMPAD1 ){
-                    isP1 = true;
-                    whoTakeTheHint = 1;
-                }
-
-                if(key == KeyEvent.VK_2 || key == KeyEvent.VK_NUMPAD2 ){
-                    isP2 = true;
-                    whoTakeTheHint = 2;
-                }
-            }
 
             // Minimize and Maximize the JFrame
             if (key == KeyEvent.VK_F) frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -428,7 +431,7 @@ public class GameScene implements GLEventListener, KeyListener {
             // back to the MainMenu
             if (key == KeyEvent.VK_BACK_SPACE){
                 frame.dispose();
-                MainMenuScene menu = new MainMenuScene();
+                SingleLevels menu = new SingleLevels();
                 menu.start();
             }
 
@@ -439,11 +442,9 @@ public class GameScene implements GLEventListener, KeyListener {
                 if (gamePaused) {
                     // Pause timers
                     player1Timer.pause();
-                    player2Timer.pause();
                 } else {
                     // Resume timers
                     player1Timer.resume();
-                    player2Timer.resume();
                 }
             }
 
