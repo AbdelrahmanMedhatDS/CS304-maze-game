@@ -45,8 +45,8 @@ public class Timer {
 
     public void resume() {
         if (isPaused) {
-            totalPausedTime += System.currentTimeMillis() - pauseStartTime;
             isPaused = false;
+            totalPausedTime += System.currentTimeMillis() - pauseStartTime;
             pauseStartTime = 0;
         }
     }
@@ -63,14 +63,5 @@ public class Timer {
     }
 
 
-    public int addTime(int seconds) {
-        // Add the specified number of seconds to total seconds
-        totalSeconds += seconds;
-        return seconds;
-    }
 
-
-    public int getTotalTime() {
-        return totalSeconds + (int)(totalPausedTime / 1000);
-    }
 }
